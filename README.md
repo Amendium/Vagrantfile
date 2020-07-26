@@ -5,13 +5,13 @@ A script that will automate a Vagrant orchestrated five containers with ssh acce
 ## Instructions
 
 1.This script is written to run only in Debian environment. Running it in any other environment would result in error.
-2. chmod +x creation and change the permission of the file before using
-3. ./creation
 
 ### Prerequisites
 
 1.	Host running Debian 10 OS.
 2.	Virtualization enabled in BIOS setting
+3. chmod +x creation and change the permission of the file before using
+4. ./creation
 
 ### Note
 
