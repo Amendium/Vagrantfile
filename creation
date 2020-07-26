@@ -1,0 +1,84 @@
+#!/usr/bin/bash
+
+echo "Author : Pratik M"
+echo "Objecive behind developing this script is to automate the creation of 5 containers namely frontend-1, fronttend-2, backend-1, backend-2, controller and orchestrate it with Vagrant"
+echo ""
+
+echo "We should store the packages in one place so lets create a Directory called Vagrant"
+mkdir /home/vagrant
+cd vagrant
+echo "Before we begin installation of Vagrant and VirtualBox, ensure that pre-condition under Prerequisites are completed before we begin"
+echo "We would begin by installation of Vagrant and VirtualBox"
+
+echo "1. We will download and install vagrant"
+wget https://releases.hashicorp.com/vagrant/2.2.9/vagrant_2.2.9_linux_amd64.zip
+unzip vagrant_2.2.9_linux_amd64.zip
+echo ""
+echo "Vagrant downloaded and installed and the version is below"
+./vagrant --version
+
+echo "2. We now download and install VirtualBox"
+wget -q https://www.virtualbox.org/download/oracle_vbox_2016.asc -O- | sudo apt-key add -
+echo "deb [arch=amd64] http://download.virtualbox.org/virtualbox/debian buster contrib" | sudo tee /etc/apt/sources.list.d/virtualbox.list  
+sudo apt update
+sudo apt install -y dkms
+sudo apt install -y virtualbox virtualbox-ext-pack
+virtualbox --version
+
+echo "Ok so both VirtualBox and Vagrant are now downloaded and installed successfully"
+echo "Now lets create VagrantFile and a Dockerfile and save it in /home/Vagrant/tester"
+touch Dockerfile
+touch Vagrantfile
+echo "FROM httpd as build1" >> Dockerfile
+echo "MAINTAINER Pratik M" >> Dockerfile
+echo "RUN apt-get update --fix-missing" >> Dockerfile
+echo "RUN apt-get install -y openssh-server" >> Dockerfile
+echo "EXPOSE 22" >> Dockerfile
+echo ""
+echo "CMD ["echo", "Hello World.."]" >> Dockerfile
+echo ""
+echo "FROM nginx as build2" >> Dockerfile
+echo "RUN apt update; apt-get install -y vim" >> Dockerfile
+echo "RUN apt-get update --fix-missing" >> Dockerfile
+echo "RUN apt-get install -y openssh-server" >> Dockerfile
+echo "EXPOSE 22" >> Dockerfile
+echo "CMD ["echo", "Hello World.."]" >> Dockerfile
+echo ""
+echo "FROM mariadb as build3" >> Dockerfile
+echo "ENV MYSQL_ROOT_PASSWORD fred" >> Dockerfile
+echo "ENV MYSQL_USER foo" >> Dockerfile
+echo "ENV MYSQL_PASSWORD far" >> Dockerfile
+echo "RUN apt-get update --fix-missing" >> Dockerfile
+echo "RUN apt-get install -y openssh-server" >> Dockerfile
+echo "RUN mkdir -p /var/run/sshd" >> Dockerfile
+echo "EXPOSE 22"
+echo "RUN chmod 0755 /var/run/sshd" >> Dockerfile
+echo "#Creating and configuring Vagrant User"
+echo "RUN useradd --create-home -s /bin/bash vagrant" >> Dockerfile
+
+echo ""
+cat Dockerfile
+docker build --target build1 -t frontend-1 .
+docker build --target build2 -t frontend-2 .
+docker build --target build3 -t backend-1 .
+docker build --target build3 -t backendend-2 .
+docker build --target build2 -t controller .
+echo ""
+echo "Now lets create Vagrantfile" >> Vagrantfile
+echo "Vagrant.configure("2") do |config|" >> Vagrantfile
+echo "config.vm.provision "docker" do |d|" >> Vagrantfile
+echo "d.has_ssh = true" >> Vagrantfile
+echo "d.run "frontend-1"" >> Vagrantfile
+echo "d.run "frontend-2"" >> Vagrantfile
+echo "d.run "backend-1"" >> Vagrantfile
+echo "d.run "backend-2"" >> Vagrantfile
+echo "d.run "controller"" >> Vagrantfile
+echo "end" >> Vagrantfile
+echo "config.ssh.port = 22" >> Vagrantfile
+echo "config.ssh.username = "vagrant"" >> Vagrantfile
+echo "config.vm.network :forwareded_port, guest: 22, host: 1234" >> Vagrantfile
+echo "end"
+ls -al
+./vagrant up
+netstat -nplt
+ssh vagrant@127.0.0.1 -p 1234
